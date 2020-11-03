@@ -24,7 +24,7 @@ For more information check [here](https://github.com/rusty1s/pytorch_scatter).
 
 ## Preprocessing
 
-Preprocessed datasets can be downloaded from [here](https://drive.google.com/file/d/1HfJ9reYfgm_TsexapyLDFGMcWYtmfhGf/view?usp=sharing).
+Preprocessed datasets can be downloaded from [here](https://drive.google.com/file/d/15ckbKsyq5sMU-RJh0n-mB9NgyW1WhTsF/view?usp=sharing).
 
 Unzip the file and move it to `data`.
 
