@@ -359,7 +359,10 @@ def evaluate(args, model, tokenizer, evaluate_metrics="ppl", prefix='0'):
                         "map_mask": batch[14],
                         "seq_generator": generator}
 
-                hypos = model.generate(**batch)
+                if hasattr(model, "module"):
+                    hypos = model.module.generate(**batch)
+                else:
+                    hypos = model.generate(**batch)
                 gen_seqs.extend(hypos)
 
         nb_eval_steps += 1
