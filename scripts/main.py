@@ -209,28 +209,28 @@ def train(args, train_dataset, model, tokenizer):
         local_step = 0
         epoch_iterator = tqdm(train_dataloader, desc="Iteration", disable=args.local_rank not in [-1, 0])
         for step, batch in enumerate(epoch_iterator):
-            batch = tuple(t.to(args.device) for t in batch)
 
-            batch_size = batch[0].size(0)
-            mem_size = batch[6].size(1)
-            batch = {"src_input_ids": batch[0], 
-                    "attention_mask": batch[1],
-                    "src_position_ids": batch[2],
-                    "target_input_ids": batch[3],
-                    "target_position_ids": batch[4],
-                    "labels": batch[5], 
-                    "concept_ids": batch[6], 
-                    "concept_label": batch[7],
-                    "distance": batch[8], #v3
-                    "head": batch[9], 
-                    "tail": batch[10],
-                    "relation": batch[11],
-                    "triple_label": batch[12],
-                    "vocab_map": batch[13], 
-                    "map_mask": batch[14], 
-                    "gate_label": batch[-1]}
-            
+            batch = {
+                "src_input_ids": batch["src_input_ids"].to(args.device),
+                "attention_mask": batch["attention_mask"].to(args.device),
+                "src_position_ids": batch["src_position_ids"].to(args.device),
+                "target_input_ids": batch["target_input_ids"].to(args.device),
+                "target_position_ids": batch["target_position_ids"].to(args.device),
+                "labels": batch["labels"].to(args.device),
+                "concept_ids": batch["concept_ids"].to(args.device),
+                "concept_label": batch["concept_label"].to(args.device),
+                "distance": batch["distance"].to(args.device),  # v3
+                "head": batch["head_ids_trunc"].to(args.device),
+                "tail": batch["tail_ids_trunc"].to(args.device),
+                "relation": batch["relations_trunc"].to(args.device),
+                "triple_label": batch["triple_labels_trunc"].to(args.device),
+                "vocab_map": batch["vocab_map"].to(args.device),
+                "map_mask": batch["map_mask"].to(args.device),
+                "gate_label": batch["gate_labels"].to(args.device),
+            }
+
             batch_size = batch["src_input_ids"].size(0)
+            mem_size = batch["concept_ids"].size(1)
             
             model.train()
             outputs = model(**batch)
@@ -343,23 +343,29 @@ def evaluate(args, model, tokenizer, evaluate_metrics="ppl", prefix='0'):
         
         with torch.no_grad():
             if evaluate_metrics == 'bleu':
-                batch_size = batch[0].size(0)
-                mem_size = batch[6].size(1)
-                batch = {"src_input_ids": batch[0], 
-                        "attention_mask": batch[1],
-                        "src_position_ids": batch[2],
-                        "concept_ids": batch[6], 
-                        "concept_label": batch[7],
-                        "distance": batch[8], #v3
-                        "head": batch[9], 
-                        "tail": batch[10],
-                        "relation": batch[11],
-                        "triple_label": batch[12],
-                        "vocab_map": batch[13], 
-                        "map_mask": batch[14],
-                        "seq_generator": generator}
+                batch = {
+                    "src_input_ids": batch["src_input_ids"].to(args.device),
+                    "attention_mask": batch["attention_mask"].to(args.device),
+                    "src_position_ids": batch["src_position_ids"].to(args.device),
+                    "concept_ids": batch["concept_ids"].to(args.device),
+                    "concept_label": batch["concept_label"].to(args.device),
+                    "distance": batch["distance"].to(args.device),  # v3
+                    "head": batch["head_ids_trunc"].to(args.device),
+                    "tail": batch["tail_ids_trunc"].to(args.device),
+                    "relation": batch["relations_trunc"].to(args.device),
+                    "triple_label": batch["triple_labels_trunc"].to(args.device),
+                    "vocab_map": batch["vocab_map"].to(args.device),
+                    "map_mask": batch["map_mask"].to(args.device),
+                    "seq_generator": generator,
+                }
 
-                hypos = model.generate(**batch)
+                batch_size = batch["src_input_ids"].size(0)
+                mem_size = batch["concept_ids"].size(1)
+
+                if hasattr(model, "module"):
+                    hypos = model.module.generate(**batch)
+                else:
+                    hypos = model.generate(**batch)
                 gen_seqs.extend(hypos)
 
         nb_eval_steps += 1

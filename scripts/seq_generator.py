@@ -454,7 +454,9 @@ class SequenceGenerator(object):
             assert num_remaining_sent >= 0
             if num_remaining_sent == 0:
                 break
-            assert step < max_len
+            if step >= max_len:
+                break
+            assert step < max_len, f"{step} < {max_len}"
 
             if len(finalized_sents) > 0:
                 new_bsz = bsz - len(finalized_sents)

@@ -1,6 +1,6 @@
 import json
 
-f = open('../models/gpt2-small/gpt2-vocab.json', 'r')
+f = open('../models/gpt2-small/vocab.json', 'r')
 vocab = json.load(f)
 f.close()
 vocab["<|bos|>"] = len(vocab)
